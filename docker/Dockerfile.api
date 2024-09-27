@@ -1,0 +1,17 @@
+FROM python:3.9
+
+WORKDIR /app
+
+# Copy the entire src directory
+COPY src/ .
+
+# Install the requirements
+COPY src/prefect_api/requirements.txt .
+
+# Install other dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# The command will be specified in docker-compose.yml

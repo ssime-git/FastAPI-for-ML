@@ -11,3 +11,14 @@ python app.py
 ![image1.png](./image2.png)
 ![image2.png](./image1.png)
 
+## Running the prefect container
+
+```sh
+docker compose up
+```
+
+## trigger the flow
+
+```sh
+curl -X POST http://localhost:8000/trigger-pipeline
+```

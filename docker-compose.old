@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  prefect-server:
+    image: prefecthq/prefect:3-latest
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefect_data:/root/.prefect
+    command: prefect server start --host 0.0.0.0
+
+  #prefect-worker:
+  #  build:
+  #    context: .
+  #    dockerfile: ./docker/Dockerfile.prefect
+  #  volumes:
+  #    - ./data:/app/data
+  #    - ./logs:/app/logs
+  #  environment:
+  #    - PREFECT_API_URL=http://prefect-server:4200/api
+  #  depends_on:
+  #    - prefect-server  # Ensure prefect-server starts first
+  #  command: python src/prefect_flow.py
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    depends_on:
+      - prefect-server
+
+volumes:
+  prefect_data:

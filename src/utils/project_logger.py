@@ -18,12 +18,12 @@ logging.basicConfig(
 )
 
 # Create a logger instance
-logger = logging.getLogger('project_logger')
+custom_logger = logging.getLogger('project_logger')
 
 # Example usage within this module
 if __name__ == "__main__":
-    logger.debug("This is a debug message")
-    logger.info("This is an info message")
-    logger.warning("This is a warning message")
-    logger.error("This is an error message")
-    logger.critical("This is a critical message")
+    custom_logger.debug("This is a debug message")
+    custom_logger.info("This is an info message")
+    custom_logger.warning("This is a warning message")
+    custom_logger.error("This is an error message")
+    custom_logger.critical("This is a critical message")

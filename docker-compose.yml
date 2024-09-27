@@ -1,0 +1,110 @@
+#version: '3'
+#
+#services:
+#  prefect-server:
+#    image: prefecthq/prefect:3-latest
+#    ports:
+#      - "4200:4200"
+#    volumes:
+#      - prefect_data:/root/.prefect
+#      - logs:/var/log/prefect
+#      - data:/var/lib/prefect
+#    command: prefect server start --host 0.0.0.0
+#
+#  api:
+#    build:
+#      context: .
+#      dockerfile: ./docker/Dockerfile.api
+#    ports:
+#      - "8000:8000"
+#    environment:
+#      - PREFECT_API_URL=http://prefect-server:4200/api
+#    depends_on:
+#      - prefect-server
+#    volumes:
+#      - ./src:/app/src
+#      - ./data:/app/data
+#      - ./logs:/app/logs
+#
+#volumes:
+#  prefect_data:
+#  logs:
+#  data:
+
+version: '3'
+
+services:
+  prefect-db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: prefect
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+    volumes:
+      - prefect_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  prefect-server:
+    image: prefecthq/prefect:3-latest
+    depends_on:
+      prefect-db:
+        condition: service_healthy
+    ports:
+      - "4200:4200"
+    environment:
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://prefect:prefect@prefect-db:5432/prefect
+    command: prefect server start
+
+  prefect-worker:
+    build:
+      context: . #image: prefecthq/prefect:3-latest
+      dockerfile: ./docker/Dockerfile.prefect
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    depends_on:
+      - prefect-server
+    volumes:
+      - ./src:/app/src
+    working_dir: /app
+    command: >
+      bash -c "
+        sleep 10 &&
+        if ! prefect work-pool inspect default-agent-pool > /dev/null 2>&1; then
+          echo 'Creating work pool default-agent-pool'
+          prefect work-pool create default-agent-pool --type process
+        else
+          echo 'Work pool default-agent-pool already exists'
+        fi &&
+        echo 'Creating deployment for data_pipeline flow' &&
+        prefect deploy src/prefect_flow.py:data_pipeline -n data_pipeline_deployment -p default-agent-pool &&
+      prefect worker start -p default-agent-pool && echo 'Starting worker' &&
+      prefect deployment run 'data_pipeline/data_pipeline_deployment'
+      "
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    depends_on:
+      - prefect-server
+      - prefect-worker
+    volumes:
+      - ./src:/app/src
+    command: >
+      bash -c "
+        echo 'Waiting for Prefect server and worker to be ready...'
+        sleep 20 &&
+        uvicorn prefect_api.prefect_api:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+volumes:
+  prefect_postgres_data:

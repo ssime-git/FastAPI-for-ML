@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+prefect
+joblib
+scikit-learn
+prefect
+pydantic>=2.0

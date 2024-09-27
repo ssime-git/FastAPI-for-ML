@@ -1,0 +1,45 @@
+.
+├── LICENSE
+├── Makefile
+├── README.md
+├── data
+│   ├── processed
+│   │   ├── X_test.joblib
+│   │   ├── X_train.joblib
+│   │   ├── y_test.joblib
+│   │   └── y_train.joblib
+│   └── raw
+│       ├── X.joblib
+│       └── y.joblib
+├── docker
+│   ├── Dockerfile.api
+│   └── Dockerfile.prefect
+├── docker-compose.yml
+├── image1.png
+├── image2.png
+├── logs
+│   └── project.log
+├── model
+│   ├── iris_model.pkl
+│   └── metrics.csv
+├── project.txt
+├── requirements.txt
+├── src
+│   ├── app
+│   │   ├── app.py
+│   │   └── templates
+│   │       ├── index.html
+│   │       └── result.html
+│   ├── evaluate.py
+│   ├── ingest_data.py
+│   ├── prefect_api
+│   │   ├── prefect_api.py
+│   │   └── requirements.txt
+│   ├── prefect_flow.py
+│   ├── preprocess.py
+│   ├── train_and_save_model.py
+│   └── utils
+│       ├── __pycache__
+│       │   └── project_logger.cpython-312.pyc
+│       └── project_logger.py
+└── train_model.py
